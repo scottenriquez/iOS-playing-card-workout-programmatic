@@ -10,6 +10,8 @@ import UIKit
 
 class CardSelectionViewController: UIViewController {
 
+    var timer: Timer!
+    var cardUIImages = Deck.getAllCardUIImages()
     let cardImageView = UIImageView()
     let stopButton = PlayingCardWorkoutButton(backgroundColor: .systemRed, title: "Stop")
     let resetButton = PlayingCardWorkoutButton(backgroundColor: .systemGreen, title: "Reset")
@@ -18,12 +20,37 @@ class CardSelectionViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        startTimer()
         configureUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        timer.invalidate()
+    }
+    
+    func startTimer() {
+        timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(showRandomImage), userInfo: nil, repeats: true)
+    }
+    
+    @objc func showRandomImage() {
+        cardImageView.image = cardUIImages.randomElement() ?? UIImage(named: "AS")
+    }
+    
+    @objc func stopButtonPressed(_ sender: UIButton) {
+        timer.invalidate()
+    }
+    
+    @objc func resetButtonPressed(_ sender: UIButton) {
+        timer.invalidate()
+        startTimer()
     }
     
     func configureUI() {
         configureCardImageView()
         configureStopButton()
+        configureResetButton()
+        configureRulesButton()
     }
     
     func configureCardImageView() {
@@ -40,6 +67,7 @@ class CardSelectionViewController: UIViewController {
     
     func configureStopButton() {
         view.addSubview(stopButton)
+        stopButton.addTarget(self, action: #selector(stopButtonPressed), for: .touchUpInside)
         NSLayoutConstraint.activate([
             stopButton.widthAnchor.constraint(equalToConstant: 250),
             stopButton.heightAnchor.constraint(equalToConstant: 50),
@@ -47,5 +75,30 @@ class CardSelectionViewController: UIViewController {
             stopButton.topAnchor.constraint(equalTo: cardImageView.bottomAnchor, constant: 30)
         ])
     }
+    
+    func configureResetButton() {
+        view.addSubview(resetButton)
+        resetButton.addTarget(self, action: #selector(resetButtonPressed), for: .touchUpInside)
+        NSLayoutConstraint.activate([
+            resetButton.widthAnchor.constraint(equalToConstant: 115),
+            resetButton.heightAnchor.constraint(equalToConstant: 50),
+            resetButton.leadingAnchor.constraint(equalTo: stopButton.leadingAnchor),
+            resetButton.topAnchor.constraint(equalTo: stopButton.bottomAnchor, constant: 20)
+        ])
+    }
 
+    func configureRulesButton() {
+        view.addSubview(rulesButton)
+        rulesButton.addTarget(self, action: #selector(presentRulesViewController), for: .touchUpInside)
+        NSLayoutConstraint.activate([
+            rulesButton.widthAnchor.constraint(equalToConstant: 115),
+            rulesButton.heightAnchor.constraint(equalToConstant: 50),
+            rulesButton.leadingAnchor.constraint(equalTo: resetButton.trailingAnchor, constant: 20),
+            rulesButton.topAnchor.constraint(equalTo: stopButton.bottomAnchor, constant: 20)
+        ])
+    }
+    
+    @objc func presentRulesViewController() {
+        present(RulesViewController(), animated: true)
+    }
 }
